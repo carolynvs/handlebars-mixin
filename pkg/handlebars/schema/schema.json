@@ -4,40 +4,40 @@
     "installStep": {
       "type": "object",
       "properties": {
-        "skeletor": {"$ref": "#/definitions/skeletor"}
+        "handlebars": {"$ref": "#/definitions/handlebars"}
       },
       "required": [
-        "skeletor"
+        "handlebars"
       ],
       "additionalProperties": false
     },
     "upgradeStep": {
       "type": "object",
       "properties": {
-        "skeletor": {"$ref": "#/definitions/skeletor"}
+        "handlebars": {"$ref": "#/definitions/handlebars"}
       },
       "required": [
-        "skeletor"
+        "handlebars"
       ],
       "additionalProperties": false
     },
     "invokeStep": {
       "type": "object",
       "properties": {
-        "skeletor": {"$ref": "#/definitions/skeletor"}
+        "handlebars": {"$ref": "#/definitions/handlebars"}
       },
       "required": [
-        "skeletor"
+        "handlebars"
       ],
       "additionalProperties": false
     },
     "uninstallStep": {
       "type": "object",
       "properties": {
-        "skeletor": {"$ref": "#/definitions/skeletor"}
+        "handlebars": {"$ref": "#/definitions/handlebars"}
       },
       "required": [
-        "skeletor"
+        "handlebars"
       ],
       "additionalProperties": false
     },
@@ -45,60 +45,25 @@
       "type": "string",
       "minLength": 1
     },
-    "outputs": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "jsonPath": {
-            "type": "string"
-          },
-          "regex": {
-            "type": "string"
-          },
-          "path": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "name"
-        ],
-        "oneOf": [
-          { "required": [ "jsonPath" ] },
-          { "required": [ "regex" ] },
-          { "required": [ "path" ] }
-        ]
-      }
-    },
-    "skeletor": {
+    "handlebars": {
       "type": "object",
       "properties": {
         "description": {
           "$ref": "#/definitions/stepDescription"
         },
-        "arguments": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "template": {
+          "description": "Path to the source template that should be rendered by handlebars",
+          "type": "string"
         },
-        "flags": {
-          "type": "object",
-          "additionalProperties": {
-            "type": ["null","boolean","number","string"]
-          }
-        },
-        "outputs": {
-          "$ref": "#/definitions/outputs"
+        "destination": {
+          "description": "Path to the destination file where the rendered template should be saved. If omitted, the source template is overwritten",
+          "type": "string"
         }
       },
       "additionalProperties": false,
       "required": [
-        "description"
+        "description",
+        "template"
       ]
     }
   },

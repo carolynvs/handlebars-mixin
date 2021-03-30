@@ -1,6 +1,9 @@
-package skeletor
+package handlebars
 
 import (
+	"path"
+	"strings"
+
 	"get.porter.sh/porter/pkg/exec/builder"
 )
 
@@ -14,7 +17,7 @@ type Action struct {
 
 // MarshalYAML converts the action back to a YAML representation
 // install:
-//   skeletor:
+//   handlebars:
 //     ...
 func (a Action) MarshalYAML() (interface{}, error) {
 	return map[string]interface{}{a.Name: a.Steps}, nil
@@ -27,7 +30,7 @@ func (a Action) MakeSteps() interface{} {
 
 // UnmarshalYAML takes any yaml in this form
 // ACTION:
-// - skeletor: ...
+// - handlebars: ...
 // and puts the steps into the Action.Steps field
 func (a *Action) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	results, err := builder.UnmarshalAction(unmarshal, a)
@@ -56,8 +59,14 @@ func (a Action) GetSteps() []builder.ExecutableStep {
 	return steps
 }
 
+func (a Action) SetDefaults() {
+	for _, s := range a.Steps {
+		s.SetDefaults()
+	}
+}
+
 type Step struct {
-	Instruction `yaml:"skeletor"`
+	*Instruction `yaml:"handlebars"`
 }
 
 // Actions is a set of actions, and the steps, passed from Porter.
@@ -66,12 +75,12 @@ type Actions []Action
 // UnmarshalYAML takes chunks of a porter.yaml file associated with this mixin
 // and populates it on the current action set.
 // install:
-//   skeletor:
+//   handlebars:
 //     ...
-//   skeletor:
+//   handlebars:
 //     ...
 // upgrade:
-//   skeletor:
+//   handlebars:
 //     ...
 func (a *Actions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	results, err := builder.UnmarshalAction(unmarshal, Action{})
@@ -93,73 +102,50 @@ func (a *Actions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 var _ builder.HasOrderedArguments = Instruction{}
 var _ builder.ExecutableStep = Instruction{}
-var _ builder.StepWithOutputs = Instruction{}
 
 type Instruction struct {
-	Name            string        `yaml:"name"`
-	Description     string        `yaml:"description"`
-	Arguments       []string      `yaml:"arguments,omitempty"`
-	SuffixArguments []string      `yaml:"suffix-arguments,omitempty"`
-	Flags           builder.Flags `yaml:"flags,omitempty"`
-	Outputs         []Output      `yaml:"outputs,omitempty"`
-	SuppressOutput  bool          `yaml:"suppress-output,omitempty"`
+	Template       string `yaml:"template"`
+	Destination    string `yaml:"destination,omitempty"`
+	Description    string `yaml:"description"`
+	SuppressOutput bool   `yaml:"suppress-output,omitempty"`
 }
 
+// hbs -s --helper /myhelpers.js --data /data.json -- /template.yaml
 func (s Instruction) GetCommand() string {
-	return "skeletor"
+	return "hbs"
 }
 
 func (s Instruction) GetArguments() []string {
-	return s.Arguments
+	return nil
 }
 
 func (s Instruction) GetSuffixArguments() []string {
-	return s.SuffixArguments
+	return []string{
+		"--",
+		s.Template,
+	}
 }
 
 func (s Instruction) GetFlags() builder.Flags {
-	return s.Flags
+	ext := strings.TrimPrefix(path.Ext(s.Template), ".")
+	return builder.Flags{
+		builder.NewFlag("helper", helperScript),
+		builder.NewFlag("data", dataFile),
+		builder.NewFlag("output", tempDestination),
+		builder.NewFlag("extension", ext),
+	}
 }
 
 func (s Instruction) SuppressesOutput() bool {
 	return s.SuppressOutput
 }
 
-func (s Instruction) GetOutputs() []builder.Output {
-	// Go doesn't have generics, nothing to see here...
-	outputs := make([]builder.Output, len(s.Outputs))
-	for i := range s.Outputs {
-		outputs[i] = s.Outputs[i]
+func (s *Instruction) SetDefaults() {
+	if s.Destination == "" {
+		s.Destination = s.Template
 	}
-	return outputs
 }
 
-var _ builder.OutputJsonPath = Output{}
-var _ builder.OutputFile = Output{}
-var _ builder.OutputRegex = Output{}
-
-type Output struct {
-	Name string `yaml:"name"`
-
-	// See https://porter.sh/mixins/exec/#outputs
-	// TODO: If your mixin doesn't support these output types, you can remove these and the interface assertions above, and from #/definitions/outputs in schema.json
-	JsonPath string `yaml:"jsonPath,omitempty"`
-	FilePath string `yaml:"path,omitempty"`
-	Regex    string `yaml:"regex,omitempty"`
-}
-
-func (o Output) GetName() string {
-	return o.Name
-}
-
-func (o Output) GetJsonPath() string {
-	return o.JsonPath
-}
-
-func (o Output) GetFilePath() string {
-	return o.FilePath
-}
-
-func (o Output) GetRegex() string {
-	return o.Regex
+func (s Instruction) getTempPath() string {
+	return path.Join(tempDestination, path.Base(s.Template))
 }

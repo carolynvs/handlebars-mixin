@@ -1,4 +1,4 @@
-package skeletor
+package handlebars
 
 import (
 	"testing"

@@ -1,5 +1,5 @@
 install:
-  - skeletor:
+  - handlebars:
       description: "Invalid Input Test Case"
       args:
       - yarrrr

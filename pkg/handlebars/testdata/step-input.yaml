@@ -1,0 +1,5 @@
+install:
+  - handlebars:
+      description: "Render Template"
+      template: stuff.yaml
+      destination: other-stuff.yaml
