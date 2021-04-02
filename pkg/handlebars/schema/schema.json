@@ -51,12 +51,23 @@
         "description": {
           "$ref": "#/definitions/stepDescription"
         },
-        "template": {
-          "description": "Path to the source template that should be rendered by handlebars",
+        "data": {
+          "description": "Path to the template data. Porter's template data is used if unspecified.",
           "type": "string"
         },
         "destination": {
           "description": "Path to the destination file where the rendered template should be saved. If omitted, the source template is overwritten",
+          "type": "string"
+        },
+        "helpers": {
+          "description": "Additional helper scripts to use with the template. Handlebars-Helpers is always included.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "template": {
+          "description": "Path to the source template that should be rendered by handlebars",
           "type": "string"
         }
       },

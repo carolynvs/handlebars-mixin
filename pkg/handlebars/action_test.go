@@ -10,7 +10,7 @@ import (
 )
 
 func TestMixin_UnmarshalStep(t *testing.T) {
-	b, err := ioutil.ReadFile("testdata/step-input.yaml")
+	b, err := ioutil.ReadFile("testdata/step-input-all-fields.yaml")
 	require.NoError(t, err)
 
 	var action Action
@@ -22,8 +22,9 @@ func TestMixin_UnmarshalStep(t *testing.T) {
 	step := action.Steps[0]
 	assert.Equal(t, "Render Template", step.Description, "Invalid description")
 
-	assert.Equal(t, "stuff.yaml", step.Template, "Invalid source")
+	assert.Equal(t, "stuff.yaml.hbs", step.Template, "Invalid source")
 	assert.Equal(t, "other-stuff.yaml", step.Destination, "Invalid destination")
+	assert.Equal(t, "mydata.json", step.Data, "Invalid data")
 }
 
 func TestAction_SetDefaults(t *testing.T) {

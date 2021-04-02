@@ -104,10 +104,12 @@ var _ builder.HasOrderedArguments = Instruction{}
 var _ builder.ExecutableStep = Instruction{}
 
 type Instruction struct {
-	Template       string `yaml:"template"`
-	Destination    string `yaml:"destination,omitempty"`
-	Description    string `yaml:"description"`
-	SuppressOutput bool   `yaml:"suppress-output,omitempty"`
+	Template       string   `yaml:"template"`
+	Data           string   `yaml:"data"`
+	Destination    string   `yaml:"destination,omitempty"`
+	Description    string   `yaml:"description"`
+	Helpers        []string `yaml:"helpers"`
+	SuppressOutput bool     `yaml:"suppress-output,omitempty"`
 }
 
 // hbs -s --helper /myhelpers.js --data /data.json -- /template.yaml
@@ -130,7 +132,7 @@ func (s Instruction) GetFlags() builder.Flags {
 	ext := strings.TrimPrefix(path.Ext(s.Template), ".")
 	return builder.Flags{
 		builder.NewFlag("helper", helperScript),
-		builder.NewFlag("data", dataFile),
+		builder.NewFlag("data", s.Data),
 		builder.NewFlag("output", tempDestination),
 		builder.NewFlag("extension", ext),
 	}
@@ -143,6 +145,9 @@ func (s Instruction) SuppressesOutput() bool {
 func (s *Instruction) SetDefaults() {
 	if s.Destination == "" {
 		s.Destination = s.Template
+	}
+	if s.Data == "" {
+		s.Data = dataFile
 	}
 }
 

@@ -1,0 +1,6 @@
+install:
+  - handlebars:
+      description: "Render Template"
+      template: stuff.yaml.hbs
+      destination: other-stuff.yaml
+      data: mydata.json
